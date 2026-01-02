@@ -1,0 +1,6 @@
+{
+    "repos":[
+        "https://github.com/R2D2-fwks/llm-api-layer",
+        "https://github.com/R2D2-fwks/llm-actor-agent-framework"
+    ]
+}
