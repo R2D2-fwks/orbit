@@ -12,6 +12,9 @@
 1. After activating the env install the dependencies. Run the following command
     ` pip install -r requirements.txt`
 
+# Create .env file
+1. In the .env file add your github PAT Token like `PAT_TOKEN=<token>`
+
 # Running the code 
 1. Once the dependciencies are installed, then run the program by the following command
     `python start.py`   
