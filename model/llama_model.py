@@ -20,8 +20,3 @@ class LlamaModel(ModelInterface):
         json=payload,
         timeout=60)
         return response
-
-    # def curate_response(self, response: str) -> str:
-    #     # Curate the response to ensure quality and relevance
-    #     curated_response = response.strip()
-    #     return curated_response
