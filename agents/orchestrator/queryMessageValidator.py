@@ -5,7 +5,7 @@ from loguru import logger
 
 class QueryMessageValidator(BaseHandler):
     def handle(self, context):
-        message,orchestrator_self = context
+        message,orchestrator_self,sender = context
         if(isinstance(message,QueryMessage)):
             intent_agent_addr = orchestrator_self.createActor(IntentAgent,globalName="IntentAgent")
             orchestrator_self.send(intent_agent_addr, message)

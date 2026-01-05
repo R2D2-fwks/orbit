@@ -19,8 +19,7 @@ class OrbitAgent(Actor):
             logger.info("[OrbitAgent] received query: {}", query)
             file_path = Path(__file__).parent
             read_instruction = read_md_file(file_path / "orbitAgentInstructions.md")
-            complete_message =  read_instruction+" "+query
-            response = LLMMessage(self.model.generate(complete_message))
+            response = LLMMessage(self.model.generate(prompt=query, instruction=read_instruction))
             self.send(sender, response)
         else:
             self.send(sender, "Unknown command. Please send 'orbitAgent' to receive more assistance.")

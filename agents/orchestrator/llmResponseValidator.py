@@ -4,7 +4,7 @@ from messages.llm_message import LLMMessage
 
 class LLMResponseValidator(BaseHandler):
     def handle(self, context):
-        message,orchestrator_self = context
+        message,orchestrator_self,sender = context
         if isinstance(message,LLMMessage):
             msg = message.message
             res = json.loads(msg.text)

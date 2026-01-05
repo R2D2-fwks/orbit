@@ -99,7 +99,7 @@ class YourAgent(Actor):
         if isinstance(message, IntentAgentMessage):
             query = message.query
             # Process query with your logic
-            response = self.model.generate(query)
+            response = self.model.generate(query,instruction)
             self.send(sender, LLMMessage(response))
 ```
 

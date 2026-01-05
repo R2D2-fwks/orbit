@@ -6,8 +6,8 @@ class ModelAdapter(ModelInterface):
         super().__init__()
         self.model = model
 
-    def generate(self, prompt: str) :
-        return self.model.generate(prompt)
+    def generate(self, prompt: str,instruction: str) -> str:
+        return self.model.generate(prompt, instruction)
 
     def getModel(self) -> ModelInterface:
         return self.model

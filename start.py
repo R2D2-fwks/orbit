@@ -39,4 +39,5 @@ if __name__ == "__main__":
         agent_registry=AgentRegistry()
         agent_registry.register_agent("TroubleshootingAgent", TroubleshootingAgent,description="Agent specialized in troubleshooting technical issues.")
         agent_registry.register_agent("OrbitAgent", OrbitAgent,description="Agent specialized in handling framework related queries and tasks. Any questions related to framework/toolkit on how to use it.")
-        system.ask(orchestrator_agent_address, wrapped_query)
+        response = system.ask(orchestrator_agent_address, wrapped_query,timeout=50.0)
+        print(f"{Fore.BLUE}\nLLM Responsed: {response}\n")

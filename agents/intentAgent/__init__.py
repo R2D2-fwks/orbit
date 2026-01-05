@@ -30,8 +30,8 @@ class IntentAgent(Actor):
             logger.info("[IntentAgent] agent_names_description_string: {}", agent_names_description_string)
             file_path = Path(__file__).parent
             agent_instructions = read_md_file(file_path / "intentAgentGuidelines.md")
-            complete_message = agent_instructions + "Agent Names and descriptions: " +agent_names_description_string  +" Query from User: " + message
-            llm_response = self.model.generate(complete_message)
+            complete_message = "Agent Names and descriptions: " +agent_names_description_string  +" Query from User: " + message
+            llm_response = self.model.generate(prompt=complete_message, instruction=agent_instructions)
             intent_response = IntentAgentMessage(self.parse_response(llm_response),message)
             self.send(sender, intent_response)
         else:

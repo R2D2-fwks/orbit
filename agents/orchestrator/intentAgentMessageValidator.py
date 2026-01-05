@@ -5,7 +5,7 @@ from loguru import logger
 
 class IntentAgentMessageValidator(BaseHandler):
     def handle(self, context):
-        message, orchestrator_self = context
+        message, orchestrator_self,sender = context
         if(isinstance(message, IntentAgentMessage)):
             agent_name = message.message.get("response", None)
             logger.info("[IntentAgentMessageValidator] Extracted agent name: {}", agent_name)

@@ -3,5 +3,5 @@ from abc import abstractmethod
 
 class ModelInterface:
     @abstractmethod
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str,instruction: str) -> str:
         pass

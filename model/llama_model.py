@@ -7,11 +7,11 @@ class LlamaModel(ModelInterface):
         self.model_name = "llama3"
         self.model_url = "http://127.0.0.1:11434"
         self.headers = {'Content-Type': 'application/json'}
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, instruction: str) -> str:
         # Generate a response using the LLaMA model
         payload = {
             "model": self.model_name,
-            "prompt": prompt,
+            "prompt": instruction+" "+prompt,
             "stream": False
         }
         url = f"{self.model_url}/api/generate"
