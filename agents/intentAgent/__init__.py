@@ -6,6 +6,7 @@ from agents.agentRegistry import AgentRegistry
 from messages.intent_agent_message import IntentAgentMessage
 from messages.llm_message import LLMMessage
 from messages.query import QueryMessage
+from model.copilot_model import CopilotModel
 from services.read_md_file import read_md_file
 from thespian.actors import Actor
 from model.llama_model import LlamaModel
@@ -15,7 +16,8 @@ from loguru import logger
 class IntentAgent(Actor):
     def __init__(self):
         super().__init__()
-        self.model = ModelAdapter(LlamaModel())
+        # self.model = ModelAdapter(LlamaModel())
+        self.model = ModelAdapter(CopilotModel())
         self.agent_name = "IntentAgent"
     def receiveMessage(self, msg, sender):
         if isinstance(msg, QueryMessage):
@@ -38,9 +40,14 @@ class IntentAgent(Actor):
             self.send(sender, "Unknown command. Please send a QueryMessage to identify intent.")
 
     def parse_response(self, response: str) -> str:
-        raw_message = response.text
-        message = json.loads(raw_message)
-        text_response = message.get("response", None)
+        text_response = None
+        try:
+            raw_message = response.text
+            message = json.loads(raw_message)
+            text_response = message.get("response", None) 
+        except Exception as e:
+            logger.error(f"Error parsing response: {e}")
+            text_response =response
         if text_response is not None:
             start = text_response.find('{')
             end = text_response.rfind('}') + 1

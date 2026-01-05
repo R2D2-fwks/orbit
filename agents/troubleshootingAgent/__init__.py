@@ -3,6 +3,7 @@ from pathlib import Path
 from pyexpat import model
 from messages.intent_agent_message import IntentAgentMessage
 from messages.llm_message import LLMMessage
+from model.copilot_model import CopilotModel
 from services.read_json_file import read_json_file
 from services.read_md_file import read_md_file
 from services.repo2Text import Repo2TextService
@@ -13,7 +14,8 @@ from model.model_adapter import ModelAdapter
 class TroubleshootingAgent(Actor):
     def __init__(self):
         super().__init__()
-        self.model = ModelAdapter(LlamaModel())
+        # self.model = ModelAdapter(LlamaModel())
+        self.model = ModelAdapter(CopilotModel())
         self.agent_name = "TroubleshootingAgent"
     def receiveMessage(self, message, sender):
         if (isinstance(message, IntentAgentMessage)):

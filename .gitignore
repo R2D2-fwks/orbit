@@ -7,3 +7,4 @@ __pycache__/
 *.dylib
 *.dll
 .env
+copilot_token.txt
