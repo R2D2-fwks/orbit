@@ -14,8 +14,8 @@ from model.model_adapter import ModelAdapter
 class TroubleshootingAgent(Actor):
     def __init__(self):
         super().__init__()
-        # self.model = ModelAdapter(LlamaModel())
-        self.model = ModelAdapter(CopilotModel())
+        self.model = ModelAdapter(LlamaModel())
+        # self.model = ModelAdapter(CopilotModel())
         self.agent_name = "TroubleshootingAgent"
     def receiveMessage(self, message, sender):
         if (isinstance(message, IntentAgentMessage)):

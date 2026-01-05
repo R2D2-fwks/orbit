@@ -16,8 +16,8 @@ from loguru import logger
 class IntentAgent(Actor):
     def __init__(self):
         super().__init__()
-        # self.model = ModelAdapter(LlamaModel())
-        self.model = ModelAdapter(CopilotModel())
+        self.model = ModelAdapter(LlamaModel())
+        # self.model = ModelAdapter(CopilotModel())
         self.agent_name = "IntentAgent"
     def receiveMessage(self, msg, sender):
         if isinstance(msg, QueryMessage):

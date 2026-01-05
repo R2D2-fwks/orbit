@@ -14,8 +14,8 @@ from loguru import logger
 class OrbitAgent(Actor):
     def __init__(self):
         super().__init__()
-        # self.model = ModelAdapter(LlamaModel())
-        self.model = ModelAdapter(CopilotModel())
+        self.model = ModelAdapter(LlamaModel())
+        # self.model = ModelAdapter(CopilotModel())
     def receiveMessage(self, message, sender):
         if (isinstance(message, IntentAgentMessage)):
             query = message.query
