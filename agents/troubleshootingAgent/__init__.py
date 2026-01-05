@@ -15,7 +15,7 @@ class TroubleshootingAgent(Actor):
     def __init__(self):
         super().__init__()
         self.model = ModelAdapter(LlamaModel())
-        # self.model = ModelAdapter(CopilotModel())
+        # self.model = ModelAdapter(CopilotModel("gpt-4o"))
         self.agent_name = "TroubleshootingAgent"
     def receiveMessage(self, message, sender):
         if (isinstance(message, IntentAgentMessage)):
@@ -28,9 +28,9 @@ class TroubleshootingAgent(Actor):
                 repo_text = Repo2TextService().call_service(repo_url)
                 repo_texts.append(repo_text)
             repo_texts = " ".join([f"Repository Summary: {repo['summary']}. Structure: {repo['structure']}. Content: {repo['content']}" for repo in repo_texts])
-            read_instruction += "\nHere are the details of the repositories:\n" + repo_texts + "\n"
-            complete_message =  read_instruction+" "+query
-            response = LLMMessage(self.model.generate(complete_message))
+            complete_query =   " \nHere are the details of the repositories:\n " + repo_texts + "\n User Query: " + query
+            logger.info("[TroubleshootingAgent] prepare to generate response with complete_query")
+            response = LLMMessage(self.model.generate(complete_query, read_instruction))
             self.send(sender, response)
         else:
             self.send(sender, "Unknown command. Please send 'troubleshoot' to receive troubleshooting assistance.")

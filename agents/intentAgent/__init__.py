@@ -34,7 +34,9 @@ class IntentAgent(Actor):
             agent_instructions = read_md_file(file_path / "intentAgentGuidelines.md")
             complete_message = "Agent Names and descriptions: " +agent_names_description_string  +" Query from User: " + message
             llm_response = self.model.generate(prompt=complete_message, instruction=agent_instructions)
+            logger.info("[IntentAgent] llm_response: {}", llm_response)
             intent_response = IntentAgentMessage(self.parse_response(llm_response),message)
+            logger.info("[IntentAgent] intent_response: {}", intent_response)
             self.send(sender, intent_response)
         else:
             self.send(sender, "Unknown command. Please send a QueryMessage to identify intent.")
@@ -46,7 +48,7 @@ class IntentAgent(Actor):
             message = json.loads(raw_message)
             text_response = message.get("response", None) 
         except Exception as e:
-            logger.error(f"Error parsing response: {e}")
+            logger.warning(f"[IntentAgent]Error parsing response: {e}")
             text_response =response
         if text_response is not None:
             start = text_response.find('{')

@@ -8,10 +8,6 @@ class LLMResponseValidator(BaseHandler):
         message,orchestrator_self,sender = context
         if isinstance(message,LLMMessage):
             msg = message.message
-            try:
-                res=json.loads(msg.text)
-                return res["response"]
-            except Exception as e:
-                logger.error("Failed to decode JSON from LLM response")
-                return msg
+            logger.info(f"[LLMResponseValidator] LLM Response: {msg}")
+            return msg
         return super().handle(context)

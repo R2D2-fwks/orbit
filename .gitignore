@@ -8,3 +8,4 @@ __pycache__/
 *.dll
 .env
 copilot_token.txt
+llm_response.txt
