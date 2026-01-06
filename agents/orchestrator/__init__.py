@@ -1,4 +1,5 @@
 from agents.orchestrator import messageTypeResolver
+from agents.repoIngestionAgent import RepoIngestionAgent
 from messages.query import QueryMessage
 from thespian.actors import Actor
 from thespian.troupe import troupe
@@ -13,6 +14,8 @@ class OrchestratorAgent(Actor):
     def receiveMessage(self, message, sender):
         logger.info("[Orchestrator] Sender Address: {}", sender)
         orchestrator= self
+        repo_agent = self.createActor(RepoIngestionAgent)
+        self.send(repo_agent, "start")
         context=(message,orchestrator,sender)
         if(isinstance(message,QueryMessage)):
             self.original_sender= sender
