@@ -12,7 +12,7 @@ class RepoIngestionAgent(Actor):
         super().__init__()
         self.db = DatabaseAdapter(MilvusDatabase())
         self.agent_name = "RepoIngestionAgent"
-        
+
     def receiveMessage(self, message, sender):
         if isinstance(message, str) and message == "start":
             # Start the scheduling loop
@@ -23,6 +23,8 @@ class RepoIngestionAgent(Actor):
             # This is triggered every 2 hours
             self._do_scheduled_work()
             # Re-schedule for the next 2-hour interval
+            self._schedule_next_wakeup()
+        elif isinstance(message, str and message=="test"):
             self._schedule_next_wakeup()
 
     def _schedule_next_wakeup(self):

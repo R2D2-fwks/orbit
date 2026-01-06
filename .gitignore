@@ -9,3 +9,4 @@ __pycache__/
 .env
 copilot_token.txt
 llm_response.txt
+agentic_ai.db
