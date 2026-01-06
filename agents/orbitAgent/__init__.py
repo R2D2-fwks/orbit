@@ -3,7 +3,7 @@ from agents.orchestrator import messageTypeResolver
 from messages.intent_agent_message import IntentAgentMessage
 from messages.llm_message import LLMMessage
 from model.copilot_model import CopilotModel
-from services.read_md_file import read_md_file
+from services.file.read_md_file import read_md_file
 from services.repo2Text import Repo2TextService
 from thespian.actors import Actor
 from model.llama_model import LlamaModel

@@ -12,7 +12,8 @@ class LlamaModel(ModelInterface):
         payload = {
             "model": self.model_name,
             "prompt": instruction+" "+prompt,
-            "stream": False
+            "stream": False,
+            "think": False
         }
         url = f"{self.model_url}/api/generate"
         response = requests.post(url, 

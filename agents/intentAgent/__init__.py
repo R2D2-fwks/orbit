@@ -7,7 +7,7 @@ from messages.intent_agent_message import IntentAgentMessage
 from messages.llm_message import LLMMessage
 from messages.query import QueryMessage
 from model.copilot_model import CopilotModel
-from services.read_md_file import read_md_file
+from services.file.read_md_file import read_md_file
 from thespian.actors import Actor
 from model.llama_model import LlamaModel
 from model.model_adapter import ModelAdapter
