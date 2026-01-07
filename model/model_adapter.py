@@ -8,6 +8,6 @@ class ModelAdapter(ModelInterface):
 
     def generate(self, prompt: str,instruction: str) -> str:
         return self.model.generate(prompt, instruction)
-
-    def getModel(self) -> ModelInterface:
-        return self.model
+    
+    def chat(self, prompt: str, instruction: str) -> str:
+        return self.model.chat(prompt, instruction)

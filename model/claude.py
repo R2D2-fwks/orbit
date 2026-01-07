@@ -21,3 +21,5 @@ class Claude(ModelInterface):
         max_tokens=5000,
         stream=False)   
         return response
+    def chat(self, prompt: str, instruction: str) -> str:
+        pass

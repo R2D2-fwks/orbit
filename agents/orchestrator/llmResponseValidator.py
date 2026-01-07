@@ -8,6 +8,5 @@ class LLMResponseValidator(BaseHandler):
         message,orchestrator_self,sender = context
         if isinstance(message,LLMMessage):
             msg = message.message
-            logger.info(f"[LLMResponseValidator] LLM Response: {msg}")
             return msg
         return super().handle(context)
