@@ -12,6 +12,7 @@ from toon import encode
 import tiktoken
 
 class TroubleshootingAgent(Actor):
+    
     def __init__(self):
         super().__init__()
         self.model = ModelAdapter(LlamaModel())

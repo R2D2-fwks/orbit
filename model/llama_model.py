@@ -12,10 +12,10 @@ class LlamaModel(ModelInterface):
         # Generate a response using the LLaMA model
         payload = {
             "model": self.model_name,
-            "prompt": prompt,
+            "prompt":instruction + " " + prompt,
             "stream": False,
             "think":False,
-            "system":instruction
+            # "system":instruction
             
         }
         url = f"{self.model_url}/api/generate"

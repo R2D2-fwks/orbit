@@ -12,10 +12,12 @@ from loguru import logger
 from toon import encode
 
 class OrbitAgent(Actor):
+
     def __init__(self):
         super().__init__()
-        self.model = ModelAdapter(LlamaModel())
-        # self.model = ModelAdapter(CopilotModel("gpt-4o"))
+        # self.model = ModelAdapter(LlamaModel())
+        self.model = ModelAdapter(CopilotModel("gpt-4o"))
+
     def receiveMessage(self, message, sender):
         if (isinstance(message, IntentAgentMessage)):
             query = message.query

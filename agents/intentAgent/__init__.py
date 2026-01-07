@@ -15,6 +15,7 @@ class IntentAgent(Actor):
         self.model = ModelAdapter(LlamaModel())
         # self.model = ModelAdapter(CopilotModel("gpt-4o"))
         self.agent_name = "IntentAgent"
+        
     def receiveMessage(self, msg, sender):
         if isinstance(msg, QueryMessage):
             message = msg.message
