@@ -20,3 +20,5 @@ class OpenAi(ModelInterface):
         input=prompt,
         stream=False)   
         return response
+    def chat(self, prompt: str, instruction: str) -> str:
+        pass
