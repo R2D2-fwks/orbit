@@ -11,3 +11,9 @@ class ModelAdapter(ModelInterface):
 
     def getModel(self) -> ModelInterface:
         return self.model
+    
+    def get_latest_thread(self) -> str:
+        return self.model.get_latest_thread()
+    
+    def delete_thread(self, thread_id: str) -> bool:
+        return self.model.delete_thread(thread_id)

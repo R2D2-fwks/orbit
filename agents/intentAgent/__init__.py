@@ -1,13 +1,9 @@
 import json
-from pyexpat import model
-from tracemalloc import start
-from urllib import response
 from agents.agentRegistry import AgentRegistry
 from messages.intent_agent_message import IntentAgentMessage
-from messages.llm_message import LLMMessage
 from messages.query import QueryMessage
 from model.copilot_model import CopilotModel
-from services.read_md_file import read_md_file
+from services.file import FileService
 from thespian.actors import Actor
 from model.llama_model import LlamaModel
 from model.model_adapter import ModelAdapter
@@ -16,8 +12,8 @@ from loguru import logger
 class IntentAgent(Actor):
     def __init__(self):
         super().__init__()
-        self.model = ModelAdapter(LlamaModel())
-        # self.model = ModelAdapter(CopilotModel())
+        # self.model = ModelAdapter(LlamaModel())
+        self.model = ModelAdapter(CopilotModel())
         self.agent_name = "IntentAgent"
     def receiveMessage(self, msg, sender):
         if isinstance(msg, QueryMessage):
@@ -31,7 +27,7 @@ class IntentAgent(Actor):
             agent_names_description_string = json.dumps(agent_info)
             logger.info("[IntentAgent] agent_names_description_string: {}", agent_names_description_string)
             file_path = Path(__file__).parent
-            agent_instructions = read_md_file(file_path / "intentAgentGuidelines.md")
+            agent_instructions = FileService().read_file(file_path / "intentAgentGuidelines.md")
             complete_message = "Agent Names and descriptions: " +agent_names_description_string  +" Query from User: " + message
             llm_response = self.model.generate(prompt=complete_message, instruction=agent_instructions)
             logger.info("[IntentAgent] llm_response: {}", llm_response)

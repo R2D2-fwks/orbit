@@ -10,6 +10,8 @@ class CopilotModel(ModelInterface):
         load_dotenv()
         self.client = self.initialize_client()
         self.model_id = model_id
+        self.thread_id = None
+
     def initialize_client(self):
         client =GhCopilotClient()
         if not client.load_token_from_file():
@@ -33,12 +35,27 @@ class CopilotModel(ModelInterface):
         thread_id = self.client.create_new_thread()
         logger.info(f"[CopilotModel] Created new thread with ID: {thread_id}")
         return thread_id
+    
+    def get_latest_thread(self)-> str:
+        self.thread_id = self.client.get_latest_thread()
+        logger.info(f"[CopilotModel] Using existing thread with ID: {self.thread_id}")
+        return self.thread_id
+    
+    def delete_thread(self, thread_id: str) -> bool:
+        success = self.client.delete_thread(thread_id)
+        if success:
+            logger.info(f"[CopilotModel] Deleted thread with ID: {thread_id}")
+        else:
+            logger.warning(f"[CopilotModel] Failed to delete thread with ID: {thread_id}")
+        return success
 
     def generate(self, prompt: str,instruction: str) -> str:
         try:
             complete_prompt = instruction + " " + prompt
             model_id = self.get_model()
-            thread_id = self.create_thread()
+            thread_id = self.get_latest_thread()
+            if thread_id is None:
+                thread_id = self.create_thread()
             response = ""
             for message in self.client.send_message(complete_prompt, model_id=model_id, thread_id=thread_id):
                 if message["type"] == "content":
@@ -47,8 +64,8 @@ class CopilotModel(ModelInterface):
                     logger.debug(f"[CopilotModel] Received non-content message: {message}")
             if response.strip() == "":
                 logger.warning("[CopilotModel] Received empty response from model.")
-                return "No response generated."
+                return None
             return response
         except Exception as e:
             logger.error(f"[CopilotModel] Error generating response: {e}")
-            return "Error generating response."
+            return None

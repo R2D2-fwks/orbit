@@ -43,7 +43,7 @@ Located in the [`services/`](services/) directory:
 - [`ServiceInterface`](services/service_interface.py): Base interface for services
 - [`Repo2TextService`](services/repo2Text/__init__.py): Converts GitHub repositories to text using `gitingest`
 - [`read_json_file`](services/read_json_file.py): JSON file reader utility
-- [`read_md_file`](services/read_md_file.py): Markdown file reader utility
+- [`read_file`](services/read_file.py): Markdown file reader utility
 
 ## Getting Started
 
