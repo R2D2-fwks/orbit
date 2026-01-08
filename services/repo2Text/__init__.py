@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import asyncio
 
 class Repo2TextService(ServiceInterface):
+    
     def __init__(self):
         load_dotenv()
 

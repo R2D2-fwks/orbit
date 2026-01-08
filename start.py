@@ -3,9 +3,9 @@ from pathlib import Path
 from urllib import response
 from agents.agentRegistry import AgentRegistry
 from agents.orbitAgent import OrbitAgent
-from agents.orchestrator import OrchestratorAgent
 from agents.troubleshootingAgent import TroubleshootingAgent
 from messages.query import QueryMessage
+from orchestrator import OrchestratorAgent
 from services.file import FileService
 from thespian.actors import ActorSystem
 import json

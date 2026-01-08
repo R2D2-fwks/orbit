@@ -2,12 +2,14 @@ from model.model_interface import ModelInterface
 import requests
 import json
 class LlamaModel(ModelInterface):
+
     def __init__(self,model_name: str = "llama3",model_url: str = "http://127.0.0.1:11434"):
         super().__init__()
         self.model_name = model_name
         self.model_url = model_url
         self.prev_chunk=[]
         self.headers = {'Content-Type': 'application/json'}
+        
     def generate(self, prompt: str, instruction: str) -> str:
         # Generate a response using the LLaMA model
         payload = {
