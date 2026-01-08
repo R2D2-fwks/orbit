@@ -1,14 +1,24 @@
 
+from pathlib import Path
 from pymilvus import MilvusClient
 from services.singleton import SingletonClass
 from vector_database.db_interface import DatabaseInterface
-
+import os
+from dotenv import load_dotenv
 class MilvusDatabase(DatabaseInterface,metaclass=SingletonClass):
     def __init__(self):
-        self.client = MilvusClient("agentic_ai.db")
+        load_dotenv()
+        self.is_local = os.getenv("IS_LOCAL", "False").lower() == "true"
+        file_path = Path(__file__).parent / "temp/agentic_ai.db"
+        if self.is_local:
+           self.client = MilvusClient(file_path)
+        else:
+              milvus_host = os.getenv("MILVUS_HOST")
+              self.client = MilvusClient(milvus_host)
         self.collection_name = "repo_vectors"
         self.dimension = 768
         self.create_collection(self.collection_name, self.dimension)
+        
 
     def create_collection(self, collection_name: str, dimension: int):
         if not self.client.has_collection(collection_name):

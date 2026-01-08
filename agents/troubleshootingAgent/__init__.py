@@ -27,7 +27,6 @@ class TroubleshootingAgent(Actor):
         self.encoding = tiktoken.encoding_for_model("gpt-4o")
         self.agent_name = "TroubleshootingAgent"
         
-
     def chunk_content(self, content: str, max_tokens: int):
         sentences = content.split('###############')
         chunks = []
