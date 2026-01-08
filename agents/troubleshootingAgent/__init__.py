@@ -10,16 +10,23 @@ from model.llama_model import LlamaModel
 from model.model_adapter import ModelAdapter
 from toon import encode
 import tiktoken
+import os
+from dotenv import load_dotenv
+
+
 
 class TroubleshootingAgent(Actor):
     
     def __init__(self):
+        load_dotenv()
         super().__init__()
         self.model = ModelAdapter(LlamaModel())
         # self.model = ModelAdapter(CopilotModel("gpt-4o"))
+        self.override_flag = True
         self.max_chunk_tokens= 10000
         self.encoding = tiktoken.encoding_for_model("gpt-4o")
         self.agent_name = "TroubleshootingAgent"
+        
 
     def chunk_content(self, content: str, max_tokens: int):
         sentences = content.split('###############')
@@ -52,6 +59,7 @@ class TroubleshootingAgent(Actor):
             folder_path = Path(__file__).parent
             file_service = FileService()
             repo2text_service = Repo2TextService()
+            
             read_instruction = file_service.read_file(folder_path / "troubleshootingGuidelines.md")
             repo_urls = file_service.read_json_file(folder_path / "repo_details.json")
             repo_text = ["BEGIN: \n Here are the details of the repositories:\n"]
@@ -67,7 +75,7 @@ class TroubleshootingAgent(Actor):
             instruction_tokens = self.encoding.encode(read_instruction)
             logger.info(f"[TroubleshootingAgent] Total tokens in prompt: {len(complete_repo_tokens)}")
             logger.info(f"[TroubleshootingAgent] Instruction tokens length: {len(instruction_tokens)}")
-            if len(complete_repo_tokens) > self.max_chunk_tokens:
+            if len(complete_repo_tokens) > self.max_chunk_tokens and self.override_flag == False:
                 logger.info(f"[TroubleshootingAgent] Content too large ({len(complete_repo_tokens)} tokens), using chunking")
                 chunks = self.chunk_content(complete_prompt, self.max_chunk_tokens)
                 response_text = self.process_chunks(chunks, read_instruction)
