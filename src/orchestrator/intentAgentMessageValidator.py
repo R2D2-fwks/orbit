@@ -1,6 +1,6 @@
-from agents.agentRegistry import AgentRegistry
-from chain.baseHandler import BaseHandler
-from messages.intent_agent_message import IntentAgentMessage
+from src.agents.agentRegistry import AgentRegistry
+from src.chain.baseHandler import BaseHandler
+from src.messages.intent_agent_message import IntentAgentMessage
 from loguru import logger
 
 class IntentAgentMessageValidator(BaseHandler):

@@ -20,8 +20,7 @@ from loguru import logger
 
 # Initialize FastMCP server
 mcp = FastMCP(
-    "ORBIT Agent Server",
-    description="Multi-agent orchestration framework exposing specialized AI agents via MCP"
+    "ORBIT Agent Server"
 )
 
 
@@ -53,12 +52,12 @@ async def query_orbit_agent(
     Returns:
         The agent's response to the query
     """
-    from agents.agentRegistry import AgentRegistry
-    from agents.orchestrator import OrchestratorAgent
-    from agents.intentAgent import IntentAgent
-    from agents.troubleshootingAgent import TroubleshootingAgent
-    from agents.orbitAgent import OrbitAgent
-    from messages.query import QueryMessage
+    from src.agents.agentRegistry import AgentRegistry
+    from src.orchestrator import OrchestratorAgent
+    from src.agents.intentAgent import IntentAgent
+    from src.agents.troubleshootingAgent import TroubleshootingAgent
+    from src.agents.orbitAgent import OrbitAgent
+    from src.messages.query import QueryMessage
     from thespian.actors import ActorSystem
     
     # Build the complete query with context if provided
@@ -119,7 +118,7 @@ async def analyze_repository(
     Returns:
         Repository analysis based on the requested type
     """
-    from services.repo2Text import Repo2TextService
+    from src.services.repo2Text import Repo2TextService
     
     try:
         service = Repo2TextService()
@@ -154,9 +153,9 @@ async def list_available_agents() -> str:
     Returns:
         JSON string containing agent names and descriptions
     """
-    from agents.agentRegistry import AgentRegistry
-    from agents.troubleshootingAgent import TroubleshootingAgent
-    from agents.orbitAgent import OrbitAgent
+    from src.agents.agentRegistry import AgentRegistry
+    from src.agents.troubleshootingAgent import TroubleshootingAgent
+    from src.agents.orbitAgent import OrbitAgent
     
     # Register agents
     agent_registry = AgentRegistry()
@@ -189,7 +188,7 @@ def get_documentation(doc_type: str) -> str:
     Args:
         doc_type: Type of documentation - "readme", "troubleshooting", "orbit", "intent"
     """
-    base_path = Path(__file__).parent.parent
+    base_path = Path(__file__).parent / "src"
     
     doc_paths = {
         "readme": base_path / "README.md",

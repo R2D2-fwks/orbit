@@ -1,6 +1,6 @@
 
 
-from services.service_interface import ServiceInterface
+from src.services.service_interface import ServiceInterface
 from gitingest import ingest
 import os
 from dotenv import load_dotenv

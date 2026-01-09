@@ -1,7 +1,7 @@
 from asyncio.log import logger
 import json
-from chain.baseHandler import BaseHandler
-from messages.llm_message import LLMMessage
+from src.chain.baseHandler import BaseHandler
+from src.messages.llm_message import LLMMessage
 
 class LLMResponseValidator(BaseHandler):
     def handle(self, context):

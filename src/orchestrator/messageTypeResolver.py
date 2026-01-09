@@ -1,7 +1,8 @@
-from agents.orchestrator.actorMessageValidator import ActorMessageValidator
-from agents.orchestrator.intentAgentMessageValidator import IntentAgentMessageValidator
-from agents.orchestrator.llmResponseValidator import LLMResponseValidator
-from agents.orchestrator.queryMessageValidator import QueryMessageValidator
+from src.orchestrator.actorMessageValidator import ActorMessageValidator
+from src.orchestrator.intentAgentMessageValidator import IntentAgentMessageValidator
+from src.orchestrator.llmResponseValidator import LLMResponseValidator
+from src.orchestrator.queryMessageValidator import QueryMessageValidator
+
 
 def checkMessage(context):
     llm_response_validator = LLMResponseValidator()

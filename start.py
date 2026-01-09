@@ -1,12 +1,12 @@
 
 from pathlib import Path
 from urllib import response
-from agents.agentRegistry import AgentRegistry
-from agents.orbitAgent import OrbitAgent
-from agents.orchestrator import OrchestratorAgent
-from agents.troubleshootingAgent import TroubleshootingAgent
-from messages.query import QueryMessage
-from services.file import FileService
+from src.orchestrator import OrchestratorAgent
+from src.agents.agentRegistry import AgentRegistry
+from src.agents.orbitAgent import OrbitAgent
+from src.agents.troubleshootingAgent import TroubleshootingAgent
+from src.messages.query import QueryMessage
+from src.services.file import FileService
 from thespian.actors import ActorSystem
 import json
 from loguru import logger
@@ -43,5 +43,5 @@ if __name__ == "__main__":
         agent_registry.register_agent("OrbitAgent", OrbitAgent,description="Agent specialized in handling framework related queries and tasks. Any questions related to framework/toolkit on how to use it.")
         response = system.ask(orchestrator_agent_address, wrapped_query,timeout=50000.0)
         print(f"{Fore.CYAN}Response from ORBIT:\n{response}\n")
-        file_path = Path(__file__).parent / "temp/llm_response.txt"
+        file_path = Path(__file__).parent / "src/temp/llm_response.txt"
         FileService().write_file(file_path,response)

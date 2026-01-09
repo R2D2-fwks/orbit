@@ -1,4 +1,4 @@
-from model.model_interface import ModelInterface
+from src.model.model_interface import ModelInterface
 
 
 class ModelAdapter(ModelInterface):

@@ -1,5 +1,6 @@
-from agents.orchestrator import messageTypeResolver
-from messages.query import QueryMessage
+
+from src.messages.query import QueryMessage
+from src.orchestrator import messageTypeResolver
 from thespian.actors import Actor
 from thespian.troupe import troupe
 from loguru import logger

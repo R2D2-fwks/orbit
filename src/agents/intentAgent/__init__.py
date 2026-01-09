@@ -1,14 +1,15 @@
 import json
-from agents.agentRegistry import AgentRegistry
-from messages.intent_agent_message import IntentAgentMessage
-from messages.query import QueryMessage
-from model.copilot_model import CopilotModel
-from services.file import FileService
+from src.agents.agentRegistry import AgentRegistry
+from src.messages.intent_agent_message import IntentAgentMessage
+from src.messages.query import QueryMessage
+from src.model.copilot_model import CopilotModel
+from src.services.file import FileService
 from thespian.actors import Actor
-from model.llama_model import LlamaModel
-from model.model_adapter import ModelAdapter
+from src.model.llama_model import LlamaModel
+from src.model.model_adapter import ModelAdapter
 from pathlib import Path
 from loguru import logger
+
 class IntentAgent(Actor):
     def __init__(self):
         super().__init__()
