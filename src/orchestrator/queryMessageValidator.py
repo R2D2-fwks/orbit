@@ -1,6 +1,6 @@
-from agents.intentAgent import IntentAgent
-from chain.baseHandler import BaseHandler
-from messages.query import QueryMessage
+from src.agents.intentAgent import IntentAgent
+from src.chain.baseHandler import BaseHandler
+from src.messages.query import QueryMessage
 from loguru import logger
 
 class QueryMessageValidator(BaseHandler):

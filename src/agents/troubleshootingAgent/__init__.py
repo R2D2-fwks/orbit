@@ -1,13 +1,13 @@
 from asyncio.log import logger
 from pathlib import Path
-from messages.intent_agent_message import IntentAgentMessage
-from messages.llm_message import LLMMessage
-from model.copilot_model import CopilotModel
-from services.file import FileService
-from services.repo2Text import Repo2TextService
+from src.messages.intent_agent_message import IntentAgentMessage
+from src.messages.llm_message import LLMMessage
+from src.model.copilot_model import CopilotModel
+from src.services.file import FileService
+from src.services.repo2Text import Repo2TextService
 from thespian.actors import Actor
-from model.llama_model import LlamaModel
-from model.model_adapter import ModelAdapter
+from src.model.llama_model import LlamaModel
+from src.model.model_adapter import ModelAdapter
 from toon import encode
 import tiktoken
 import os

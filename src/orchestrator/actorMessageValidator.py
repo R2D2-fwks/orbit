@@ -1,4 +1,4 @@
-from chain.baseHandler import BaseHandler
+from src.chain.baseHandler import BaseHandler
 from thespian.actors import ActorExitRequest,ChildActorExited, PoisonMessage,WakeupMessage,DeadEnvelope,ActorSystemConventionUpdate
 from loguru import logger
 class ActorMessageValidator(BaseHandler):

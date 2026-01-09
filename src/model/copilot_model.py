@@ -1,7 +1,7 @@
 from pathlib import Path
 from ghcopilot import GithubCopilotClient as GhCopilotClient
 from dotenv import load_dotenv
-from model.model_interface import ModelInterface
+from src.model.model_interface import ModelInterface
 from loguru import logger
 
 
@@ -14,7 +14,7 @@ class CopilotModel(ModelInterface):
         self.thread_id = None
 
     def __initialize_client(self):
-        file_path = Path(__file__).parent.parent / "temp/copilot_token.txt"
+        file_path = Path(__file__).parent.parent.parent / "temp/copilot_token.txt"
         client =GhCopilotClient()
         if not client.load_token_from_file(file_path):
             cookies = client.get_cookies()
