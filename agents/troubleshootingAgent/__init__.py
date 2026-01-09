@@ -20,12 +20,13 @@ class TroubleshootingAgent(Actor):
     def __init__(self):
         load_dotenv()
         super().__init__()
-        self.model = ModelAdapter(LlamaModel())
-        # self.model = ModelAdapter(CopilotModel("gpt-4o"))
-        self.override_flag = True
+        # self.model = ModelAdapter(LlamaModel())
+        self.model = ModelAdapter(CopilotModel("gpt-4o"))
+        self.override_flag = False
         self.max_chunk_tokens= 10000
         self.encoding = tiktoken.encoding_for_model("gpt-4o")
         self.agent_name = "TroubleshootingAgent"
+        self.MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
         
 
     def chunk_content(self, content: str, max_tokens: int):
@@ -64,7 +65,7 @@ class TroubleshootingAgent(Actor):
             repo_urls = file_service.read_json_file(folder_path / "repo_details.json")
             repo_text = ["BEGIN: \n Here are the details of the repositories:\n"]
             for repo_url in repo_urls.get("repos", []):
-                repo_data = repo2text_service.call_service(repo_url)
+                repo_data = repo2text_service.call_service(repo_url, {"max_file_size": self.MAX_FILE_SIZE})
                 llm_input_data = encode(repo_data)
                 repo_text.append(llm_input_data)
                 repo_text.append("\n###############\n")

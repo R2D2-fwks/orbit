@@ -7,5 +7,9 @@ __pycache__/
 *.dylib
 *.dll
 .env
-copilot_token.txt
-llm_response.txt
+temp/copilot_token.txt
+temp/llm_response.txt
+.DS_Store
+.vscode/
+.idea/
+*.log

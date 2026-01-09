@@ -25,7 +25,8 @@ class OrbitAgent(Actor):
             file_path = Path(__file__).parent
             read_instruction = FileService().read_file(file_path / "orbitAgentInstructions.md")
             repo_url = "https://github.com/R2D2-fwks/orbit"
-            repo_data = Repo2TextService().call_service(repo_url)
+            options={"max_file_size": 5 * 1024 * 1024}  # 5 MB
+            repo_data = Repo2TextService().call_service(repo_url, options)
             llm_input_data = encode(repo_data)
             complete_query = "\nHere are the details of the Orbit repository:\n" + llm_input_data + "\n" + "User Query: "+ query
             response = LLMMessage(self.model.generate(prompt=complete_query, instruction=read_instruction))
