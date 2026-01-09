@@ -23,27 +23,14 @@ class TroubleshootingAgent(Actor):
         # self.model = ModelAdapter(LlamaModel())
         self.model = ModelAdapter(CopilotModel("gpt-4o"))
         self.override_flag = False
-        self.max_chunk_tokens= 10000
+        self.max_chunk_tokens= 30000
         self.encoding = tiktoken.encoding_for_model("gpt-4o")
         self.agent_name = "TroubleshootingAgent"
         self.MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
         
 
     def chunk_content(self, content: str, max_tokens: int):
-        sentences = content.split('###############')
-        chunks = []
-        current_chunk = ""
-        for sentence in sentences:
-            test_chunk = current_chunk + sentence + '###############'
-            token_count = len(self.encoding.encode(test_chunk))
-            if token_count <= max_tokens:
-                current_chunk = test_chunk
-            else:
-                chunks.append(current_chunk.strip())
-                current_chunk = sentence + '###############'
-        if current_chunk:
-            chunks.append(current_chunk.strip())
-        return chunks
+        return [content[i:i + max_tokens] for i in range(0, len(content), max_tokens)]
     
     def process_chunks(self, chunks, instruction):
         aggregate_response = ""
@@ -68,7 +55,6 @@ class TroubleshootingAgent(Actor):
                 repo_data = repo2text_service.call_service(repo_url, {"max_file_size": self.MAX_FILE_SIZE})
                 llm_input_data = encode(repo_data)
                 repo_text.append(llm_input_data)
-                repo_text.append("\n###############\n")
             repo_text.append("User Query: " + query)
             repo_text.append("\n END.")
             complete_prompt = "".join(repo_text)
