@@ -1,15 +1,8 @@
 
 from pathlib import Path
-from urllib import response
-from src.orchestrator import OrchestratorAgent
-from src.agents.agentRegistry import AgentRegistry
-from src.agents.orbitAgent import OrbitAgent
-from src.agents.troubleshootingAgent import TroubleshootingAgent
-from src.messages.query import QueryMessage
+from src.actor_system import start_actor_system
 from src.services.file import FileService
-from thespian.actors import ActorSystem
 import json
-from loguru import logger
 import click
 from colorama import Fore
 from art import text2art
@@ -31,17 +24,5 @@ if __name__ == "__main__":
         query = click.prompt('What is your Query?', type=str, default='How can I use ORBIT framework ?', show_default=True, err=False, prompt_suffix='\n>> ')
         print(f"{Fore.GREEN}\nGreat! You asked: {query}\n")
         print(f"{Fore.YELLOW}Processing your query, please wait...\n")
-        wrapped_query = QueryMessage(query)
-        system = ActorSystem(capabilities=capabilities)
-        logger.info("[Start]Starting Agent System...")
-        logger.info("[Start]Creating Orchestrator Agent...")
-        orchestrator_agent_address = system.createActor(OrchestratorAgent)
-        logger.info("[ActorSystem]Orchestrator Agent Created at address: {}", orchestrator_agent_address)
-        logger.info("[Start]Registering Agents in Agent Registry...")
-        agent_registry=AgentRegistry()
-        agent_registry.register_agent("TroubleshootingAgent", TroubleshootingAgent,description="Agent specialized in troubleshooting technical issues.")
-        agent_registry.register_agent("OrbitAgent", OrbitAgent,description="Agent specialized in handling framework related queries and tasks. Any questions related to framework/toolkit on how to use it.")
-        response = system.ask(orchestrator_agent_address, wrapped_query,timeout=50000.0)
-        print(f"{Fore.CYAN}Response from ORBIT:\n{response}\n")
-        file_path = Path(__file__).parent / "src/temp/llm_response.txt"
-        FileService().write_file(file_path,response)
+        response = start_actor_system(query)
+        print(f"{Fore.BLUE}Response from ORBIT:\n{response}\n")
