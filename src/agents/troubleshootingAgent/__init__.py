@@ -20,10 +20,10 @@ class TroubleshootingAgent(Actor):
     def __init__(self):
         load_dotenv()
         super().__init__()
-        # self.model = ModelAdapter(LlamaModel())
-        self.model = ModelAdapter(CopilotModel("gpt-4o"))
+        self.model = ModelAdapter(LlamaModel())
+        # self.model = ModelAdapter(CopilotModel("gpt-4o"))
         self.override_flag = False
-        self.max_chunk_tokens= 30000
+        self.max_chunk_tokens= 100000
         self.encoding = tiktoken.encoding_for_model("gpt-4o")
         self.agent_name = "TroubleshootingAgent"
         self.MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
