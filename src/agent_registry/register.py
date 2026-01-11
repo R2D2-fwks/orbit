@@ -1,16 +1,13 @@
+from src.services.singleton import Singleton
 from thespian.actors import Actor
-class AgentSingleton(type):
-    _instances = {}
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)
-            cls._instances[cls] = instance
-        return cls._instances[cls]
+
     
-class AgentRegistry(metaclass=AgentSingleton):
+class AgentRegistry(metaclass=Singleton):
     def __init__(self):
         self.agents={}
     def register_agent(self,agentName:str,agent:Actor,description:str=""):
+        if agentName in self.agents:
+            return
         self.agents[agentName] = {
             "agent": agent,
             "description": description

@@ -1,4 +1,4 @@
-from src.agents.agentRegistry import AgentRegistry
+from src.agent_registry.register import AgentRegistry
 from src.chain.baseHandler import BaseHandler
 from src.messages.intent_agent_message import IntentAgentMessage
 from loguru import logger

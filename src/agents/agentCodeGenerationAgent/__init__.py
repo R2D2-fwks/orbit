@@ -1,4 +1,3 @@
-from pathlib import Path
 from messages.intent_agent_message import IntentAgentMessage
 from messages.llm_message import LLMMessage
 from model.copilot_model import CopilotModel
