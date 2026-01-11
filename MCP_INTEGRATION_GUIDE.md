@@ -9,9 +9,11 @@ This guide covers how to integrate Model Context Protocol (MCP) capabilities int
 3. [Installing MCP Dependencies](#installing-mcp-dependencies)
 4. [Approach 1: ORBIT as MCP Server](#approach-1-orbit-as-mcp-server)
 5. [Approach 2: ORBIT as MCP Client](#approach-2-orbit-as-mcp-client)
-6. [Recommended MCP Servers](#recommended-mcp-servers)
-7. [Configuration Examples](#configuration-examples)
-8. [Best Practices](#best-practices)
+6. [MCPToolsAgent](#mcptoolsagent)
+7. [Recommended MCP Servers](#recommended-mcp-servers)
+8. [Configuration Examples](#configuration-examples)
+9. [Best Practices](#best-practices)
+10. [File Structure](#file-structure)
 
 ---
 
@@ -69,28 +71,27 @@ This guide covers how to integrate Model Context Protocol (MCP) capabilities int
 
 ## Installing MCP Dependencies
 
-Add these to your `requirements.txt`:
+MCP dependencies are already included in `requirements.txt`:
 
 ```txt
-# MCP SDK
-mcp>=1.0.0
+# MCP SDK (already installed)
+mcp==1.25.0
 
-# For HTTP transport
-uvicorn>=0.20.0
-starlette>=0.27.0
+# For HTTP transport (already installed)
+uvicorn==0.40.0
+starlette==0.50.0
 
-# For async operations
-httpx>=0.24.0
-anyio>=3.0.0
+# For async operations (already installed)
+httpx==0.28.1
+httpx-sse==0.4.3
+anyio==4.11.0
 ```
 
-Install:
+Install all dependencies:
 
 ```bash
 pip install -r requirements.txt
 
-# Or install MCP directly with CLI tools
-pip install "mcp[cli]"
 ```
 
 ---
@@ -99,66 +100,85 @@ pip install "mcp[cli]"
 
 This approach exposes your ORBIT agents as MCP tools that can be used by any MCP client.
 
-### File Structure
+### File Location
+
+The MCP server is implemented in `start_mcp_server.py` at the project root:
 
 ```
-orbit/
-├── mcp_server/
-│   ├── __init__.py      # FastMCP server implementation
-│   └── __main__.py      # Entry point
-├── agents/
-│   └── ...
+rbi/
+├── start_mcp_server.py    # FastMCP server implementation
+├── start.py               # CLI entry point
+├── src/
+│   └── agents/
+│       └── ...
 └── capabilities.json
 ```
 
-### Implementation
+### Current Implementation
 
 ```python
-# mcp_server/__init__.py
+# start_mcp_server.py
 from mcp.server.fastmcp import FastMCP
+from src.actor_system import start_actor_system
 
-mcp = FastMCP("ORBIT Agent Server")
+mcp = FastMCP("ORBIT Server")
 
 @mcp.tool()
-async def query_orbit_agent(query: str, agent_type: str = "auto") -> str:
-    """Send a query to ORBIT's intelligent agent system."""
-    # ... implementation
-    pass
+async def query_orbit_agent(
+    query: str,
+    context: Optional[str] = None
+) -> str:
+    """
+    Send a query to ORBIT's intelligent agent system.
+    The query will be automatically routed to the appropriate specialized agent
+    based on intent detection, or you can specify a specific agent type.
+    
+    Args:
+        query: The user's question or request
+        context: Optional additional context (e.g., repository URLs, code snippets)
+    Returns:
+        The agent's response to the query
+    """
+    complete_query = query
+    if context:
+        complete_query = f"{query}\n\nAdditional Context:\n{context}"
+    
+    response = start_actor_system(complete_query)
+    return response
 
-@mcp.resource("orbit://documentation/{doc_type}")
-def get_documentation(doc_type: str) -> str:
-    """Get ORBIT framework documentation."""
-    pass
-
-@mcp.prompt()
-def troubleshoot_issue(error_message: str) -> str:
-    """Generate a troubleshooting prompt."""
-    pass
+if __name__ == "__main__":
+    mcp.run(transport="stdio")
 ```
 
 ### Running the Server
 
-**Option 1: stdio transport** (for Claude Desktop)
+**Option 1: stdio transport** (for Claude Desktop, Cursor, VS Code)
 ```bash
-python -m mcp_server
+python start_mcp_server.py
 ```
 
 **Option 2: HTTP transport** (for web clients)
 ```bash
-uvicorn mcp_server:mcp.asgi_app --host 0.0.0.0 --port 8000
+uvicorn start_mcp_server:mcp.asgi_app --host 0.0.0.0 --port 8000
 ```
 
 ### Claude Desktop Configuration
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+Add to `~/Library/Application Support/VsCode/mcp.json` (macOS):
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "orbit": {
-      "command": "python",
-      "args": ["-m", "mcp_server"],
-      "cwd": "/path/to/orbit"
+      "command": "conda",
+      "args": ["run", "-n", "actorenv", "--no-capture-output", "python", "-u", "start_mcp_server.py"],
+      "cwd": "/path/to/code",
+      "env": {
+        "PAT_TOKEN":"TOKEN"
+        "PYTHONUNBUFFERED": "1",
+		"DEFAULT_TIMEOUT": "300",
+		"IS_LOCAL":"True"
+      }
     }
   }
 }
@@ -172,10 +192,10 @@ This approach lets your ORBIT agents call external MCP tools.
 
 ### MCPClientService
 
-The `MCPClientService` manages connections to external MCP servers:
+The `MCPClientService` in `src/services/mcp_client/__init__.py` manages connections to external MCP servers:
 
 ```python
-from services.mcp_client import MCPClientService
+from src.services.mcp_client import MCPClientService
 
 async def use_mcp_tools():
     service = MCPClientService()
@@ -195,26 +215,156 @@ async def use_mcp_tools():
     result = await service.call_tool(
         "github",
         "search_repositories",
-        {"query": "python actor framework"}
+        {"query": "thespian actor python"}
     )
     
-    print(result)
+    # Read a resource (if supported)
+    # resource = await service.read_resource("github", "repo://owner/repo/file.py")
+    
     await service.disconnect_all()
 ```
 
-### MCPToolsAgent
+### MCPServerConfig
 
-A specialized ORBIT agent that uses MCP tools:
+The `MCPServerConfig` dataclass defines server configurations:
 
 ```python
-# In start.py
-from agents.mcpToolsAgent import MCPToolsAgent
+from dataclasses import dataclass
+from typing import Dict, List, Optional
 
-agent_registry.register_agent(
-    "MCPToolsAgent",
-    MCPToolsAgent,
-    description="Agent with access to external MCP tools (GitHub, web, files, etc.)"
-)
+@dataclass
+class MCPServerConfig:
+    """Configuration for an MCP server connection."""
+    name: str
+    transport: str  # "stdio" or "sse" or "streamable-http"
+    command: Optional[str] = None  # For stdio
+    args: Optional[List[str]] = None  # For stdio
+    env: Optional[Dict[str, str]] = None  # For stdio
+    url: Optional[str] = None  # For SSE/HTTP
+    headers: Optional[Dict[str, str]] = None  # For SSE/HTTP
+```
+
+### MCPConnection
+
+The `MCPConnection` class manages individual server connections and caches capabilities:
+
+```python
+class MCPConnection:
+    """Manages a single MCP server connection."""
+    
+    def __init__(self, config: MCPServerConfig):
+        self.config = config
+        self.session: Optional[ClientSession] = None
+        self.tools: List[Dict[str, Any]] = []      # Cached tools
+        self.resources: List[Dict[str, Any]] = []  # Cached resources
+        self.prompts: List[Dict[str, Any]] = []    # Cached prompts
+    
+    async def connect(self):
+        """Establish connection to the MCP server."""
+        # ... establishes connection and caches capabilities
+    
+    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
+        """Call a tool on the MCP server."""
+        # ... returns tool result
+    
+    async def read_resource(self, uri: str) -> str:
+        """Read a resource from the MCP server."""
+        # ... returns resource content
+    
+    async def get_prompt(self, prompt_name: str, arguments: Dict[str, str]) -> str:
+        """Get a prompt from the MCP server."""
+        # ... returns prompt content
+```
+
+---
+
+## MCPToolsAgent
+
+A specialized ORBIT agent that integrates MCP tools with the actor-based architecture.
+
+### Location
+
+`src/agents/mcpToolsAgent/__init__.py`
+
+### Features
+
+The MCPToolsAgent can:
+1. **Receive queries** and determine which MCP tools to use
+2. **Connect to external MCP servers** (GitHub, Fetch, Filesystem, etc.)
+3. **Call MCP tools** and integrate results into responses
+4. **Use LLM** to synthesize final responses
+
+### Available MCP Servers
+
+```python
+self.available_servers = {
+    "github": {
+        "description": "GitHub API - search repos, get issues, PRs, code",
+        "tools": ["search_repositories", "get_file_contents", "search_code", 
+                 "list_issues", "create_issue", "get_pull_request"]
+    },
+    "filesystem": {
+        "description": "File operations - read, write, search files",
+        "tools": ["read_file", "write_file", "list_directory", "search_files"]
+    },
+    "fetch": {
+        "description": "Web content - fetch and convert web pages",
+        "tools": ["fetch"]
+    },
+    "memory": {
+        "description": "Knowledge storage - store and retrieve information",
+        "tools": ["create_entities", "search_nodes", "read_graph"]
+    }
+}
+```
+
+### Message Types
+
+```python
+class MCPToolRequest:
+    """Message to request an MCP tool call."""
+    def __init__(self, server_name: str, tool_name: str, arguments: Dict[str, Any] = None):
+        self.server_name = server_name
+        self.tool_name = tool_name
+        self.arguments = arguments or {}
+
+class MCPToolResponse:
+    """Response from an MCP tool call."""
+    def __init__(self, result: str, success: bool = True, error: str = None):
+        self.result = result
+        self.success = success
+        self.error = error
+```
+
+### Registering MCPToolsAgent
+
+To add MCPToolsAgent to your ORBIT system, update `src/agent_registry/__init__.py`:
+
+```python
+from src.agent_registry.register import AgentRegistry
+from src.agents.orbitAgent import OrbitAgent
+from src.agents.troubleshootingAgent import TroubleshootingAgent
+from src.agents.mcpToolsAgent import MCPToolsAgent  # Add import
+
+def register_agents():
+    agent_registry = AgentRegistry()
+    
+    agent_registry.register_agent(
+        "TroubleshootingAgent", 
+        TroubleshootingAgent,
+        description="Agent specialized in troubleshooting technical issues."
+    )
+    agent_registry.register_agent(
+        "OrbitAgent", 
+        OrbitAgent,
+        description="Agent specialized in handling framework related queries."
+    )
+    # Add MCPToolsAgent registration
+    agent_registry.register_agent(
+        "MCPToolsAgent",
+        MCPToolsAgent,
+        description="Agent with access to external MCP tools (GitHub, web, files, etc.)"
+    )
 ```
 
 ---
@@ -232,6 +382,81 @@ agent_registry.register_agent(
 | **Memory** | Knowledge graph storage | `npx -y @modelcontextprotocol/server-memory` |
 | **SQLite** | Database queries | `npx -y @modelcontextprotocol/server-sqlite` |
 | **Puppeteer** | Browser automation | `npx -y @modelcontextprotocol/server-puppeteer` |
+
+### Pre-configured Servers in MCPClientService
+
+The `COMMON_MCP_SERVERS` dictionary in `src/services/mcp_client/__init__.py` provides ready-to-use configurations:
+
+```python
+COMMON_MCP_SERVERS = {
+    "github": {
+        "transport": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env_required": ["GITHUB_PERSONAL_ACCESS_TOKEN"],
+        "description": "GitHub API integration for repositories, issues, PRs"
+    },
+    "filesystem": {
+        "transport": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+        "description": "Secure file operations with configurable access"
+    },
+    "git": {
+        "transport": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-git"],
+        "description": "Git repository operations"
+    },
+    "fetch": {
+        "transport": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-fetch"],
+        "description": "Web content fetching and conversion"
+    },
+    "memory": {
+        "transport": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-memory"],
+        "description": "Knowledge graph-based persistent memory"
+    },
+    "sqlite": {
+        "transport": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-sqlite"],
+        "description": "SQLite database interaction"
+    },
+    "puppeteer": {
+        "transport": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+        "description": "Browser automation and web scraping"
+    }
+}
+```
+
+### Using Pre-configured Servers
+
+```python
+from src.services.mcp_client import MCPClientService, create_preconfigured_connection
+
+async def connect_preconfigured():
+    service = MCPClientService()
+    
+    # Connect using pre-configured settings
+    await create_preconfigured_connection(
+        service,
+        server_name="github",
+        env={"GITHUB_PERSONAL_ACCESS_TOKEN": "your-token"}
+    )
+    
+    # For filesystem, add extra args for allowed directories
+    await create_preconfigured_connection(
+        service,
+        server_name="filesystem",
+        extra_args=["/path/to/allowed/directory"]
+    )
+```
 
 ### Community Servers
 
@@ -267,31 +492,11 @@ ANTHROPIC_API_KEY=sk-ant-xxxx
 OPENAI_API_KEY=sk-xxxx
 ```
 
+> **Note**: MCPToolsAgent checks for both `GITHUB_PERSONAL_ACCESS_TOKEN` and `PAT_TOKEN` for GitHub authentication.
+
 ### MCP Server Configuration
 
-```python
-# services/mcp_client/__init__.py
-
-COMMON_MCP_SERVERS = {
-    "github": {
-        "transport": "stdio",
-        "command": "npx",
-        "args": ["-y", "@modelcontextprotocol/server-github"],
-        "env_required": ["GITHUB_PERSONAL_ACCESS_TOKEN"]
-    },
-    "filesystem": {
-        "transport": "stdio",
-        "command": "npx",
-        "args": ["-y", "@modelcontextprotocol/server-filesystem"],
-        # Add allowed paths as extra args
-    },
-    "fetch": {
-        "transport": "stdio",
-        "command": "npx",
-        "args": ["-y", "@modelcontextprotocol/server-fetch"]
-    }
-}
-```
+Server configurations are defined in `src/services/mcp_client/__init__.py` using the `COMMON_MCP_SERVERS` dictionary. See the [Pre-configured Servers](#pre-configured-servers-in-mcpclientservice) section above.
 
 ### Connecting to Remote/SSE Servers
 
@@ -310,24 +515,32 @@ await service.connect_sse_server(
 
 ### 1. Async/Actor Bridge
 
-Since Thespian actors are synchronous but MCP is async, use this pattern:
+Since Thespian actors are synchronous but MCP is async, the MCPToolsAgent uses this pattern:
 
 ```python
-class MCPEnabledAgent(Actor):
-    def _run_async(self, coro):
-        """Run async code from sync actor context."""
-        loop = asyncio.new_event_loop()
+class MCPToolsAgent(Actor):
+    def _get_event_loop(self):
+        """Get or create an event loop for async operations."""
         try:
-            return loop.run_until_complete(coro)
-        finally:
-            loop.close()
+            return asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop
+    
+    def _run_async(self, coro):
+        """Run an async coroutine from sync context."""
+        loop = self._get_event_loop()
+        return loop.run_until_complete(coro)
     
     def receiveMessage(self, message, sender):
-        result = self._run_async(self._process_async(message))
-        self.send(sender, result)
+        result = self._run_async(self._process_query_async(message.query))
+        self.send(sender, LLMMessage(result))
 ```
 
 ### 2. Connection Lifecycle
+
+The MCPToolsAgent uses lazy initialization for MCP connections:
 
 ```python
 class MCPToolsAgent(Actor):
@@ -335,16 +548,43 @@ class MCPToolsAgent(Actor):
         super().__init__()
         self.mcp_service = None  # Initialize lazily
     
-    async def _ensure_connected(self):
+    async def _initialize_mcp_service(self):
+        """Initialize MCP client service with configured servers."""
+        from src.services.mcp_client import MCPClientService
+        import os
+        
         if self.mcp_service is None:
             self.mcp_service = MCPClientService()
-            await self._connect_servers()
-    
-    def receiveMessage(self, message, sender):
-        # Actor exit handling
-        if isinstance(message, ActorExitRequest):
-            if self.mcp_service:
-                self._run_async(self.mcp_service.disconnect_all())
+        
+        connected_servers = []
+        
+        # GitHub server (requires token)
+        github_token = os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN") or \
+                       os.environ.get("PAT_TOKEN")
+        if github_token:
+            try:
+                await self.mcp_service.connect_stdio_server(
+                    name="github",
+                    command="npx",
+                    args=["-y", "@modelcontextprotocol/server-github"],
+                    env={"GITHUB_PERSONAL_ACCESS_TOKEN": github_token}
+                )
+                connected_servers.append("github")
+            except Exception as e:
+                logger.warning(f"Could not connect to GitHub: {e}")
+        
+        # Fetch server (no auth required)
+        try:
+            await self.mcp_service.connect_stdio_server(
+                name="fetch",
+                command="npx",
+                args=["-y", "@modelcontextprotocol/server-fetch"]
+            )
+            connected_servers.append("fetch")
+        except Exception as e:
+            logger.warning(f"Could not connect to Fetch: {e}")
+        
+        return connected_servers
 ```
 
 ### 3. Error Handling
@@ -362,20 +602,64 @@ async def _call_tool_safely(self, server, tool, args):
         return f"Error: {str(e)}"
 ```
 
-### 4. Tool Selection with LLM
+### 4. Tool Selection with Query Analysis
 
-Let your LLM decide which tools to use:
+The MCPToolsAgent analyzes queries to determine which tools to use:
 
 ```python
-def _get_tool_selection_prompt(self, query: str, available_tools: list) -> str:
-    return f"""Given this query: {query}
+def _analyze_query_for_tools(self, query: str) -> List[Dict[str, Any]]:
+    """Analyze the query to determine which MCP tools might be helpful."""
+    tool_suggestions = []
+    query_lower = query.lower()
+    
+    # GitHub-related queries
+    if any(kw in query_lower for kw in ["github", "repo", "repository", "code", "issue", "pr"]):
+        if "search" in query_lower or "find" in query_lower:
+            tool_suggestions.append({
+                "server": "github",
+                "tool": "search_repositories",
+                "reason": "Search GitHub repositories"
+            })
+    
+    # Web content queries
+    if any(kw in query_lower for kw in ["fetch", "website", "webpage", "url", "http"]):
+        tool_suggestions.append({
+            "server": "fetch",
+            "tool": "fetch",
+            "reason": "Fetch web content"
+        })
+    
+    # File-related queries
+    if any(kw in query_lower for kw in ["file", "read", "write", "directory", "folder"]):
+        tool_suggestions.append({
+            "server": "filesystem",
+            "tool": "read_file" if "read" in query_lower else "list_directory",
+            "reason": "File system operations"
+        })
+    
+    return tool_suggestions
+```
 
-Available MCP tools:
-{json.dumps(available_tools, indent=2)}
+---
 
-Which tools should be called? Return JSON:
-{{"tools": [{{"server": "...", "tool": "...", "args": {{}}}}]}}
-"""
+## File Structure
+
+Here's the complete MCP-related file structure in the ORBIT project:
+
+```
+rbi/
+├── start_mcp_server.py           # ORBIT as MCP Server (FastMCP)
+├── start.py                      # CLI entry point
+├── requirements.txt              # Includes mcp==1.25.0
+├── MCP_INTEGRATION_GUIDE.md      # This guide
+├── src/
+│   ├── services/
+│   │   └── mcp_client/
+│   │       └── __init__.py       # MCPClientService, MCPConnection, COMMON_MCP_SERVERS
+│   └── agents/
+│       └── mcpToolsAgent/
+│           ├── __init__.py       # MCPToolsAgent actor implementation
+│           └── mcpToolsAgentGuidelines.md  # Agent instructions
 ```
 
 ---
@@ -384,7 +668,7 @@ Which tools should be called? Return JSON:
 
 ### Update IntentAgent Guidelines
 
-Add MCPToolsAgent to the intent detection:
+Add MCPToolsAgent to the intent detection in `src/agents/intentAgent/intentAgentGuidelines.md`:
 
 ```markdown
 **MCPToolsAgent Indicators:**
@@ -394,27 +678,46 @@ Add MCPToolsAgent to the intent detection:
 - Browser automation requests
 ```
 
-### Register in start.py
+### Register in Agent Registry
+
+Update `src/agent_registry/__init__.py` to include MCPToolsAgent:
 
 ```python
-from agents.mcpToolsAgent import MCPToolsAgent
+from src.agent_registry.register import AgentRegistry
+from src.agents.orbitAgent import OrbitAgent
+from src.agents.troubleshootingAgent import TroubleshootingAgent
+from src.agents.mcpToolsAgent import MCPToolsAgent
 
-agent_registry.register_agent(
-    "MCPToolsAgent",
-    MCPToolsAgent,
-    description="Agent with access to external MCP tools including GitHub, web fetch, file operations, and more."
-)
+def register_agents():
+    agent_registry = AgentRegistry()
+    
+    agent_registry.register_agent(
+        "TroubleshootingAgent", 
+        TroubleshootingAgent,
+        description="Agent specialized in troubleshooting technical issues."
+    )
+    agent_registry.register_agent(
+        "OrbitAgent", 
+        OrbitAgent,
+        description="Agent specialized in handling framework related queries."
+    )
+    agent_registry.register_agent(
+        "MCPToolsAgent",
+        MCPToolsAgent,
+        description="Agent with access to external MCP tools including GitHub, web fetch, file operations, and more."
+    )
 ```
 
 ---
 
 ## Next Steps
 
-1. **Install MCP SDK**: `pip install "mcp[cli]"`
-2. **Test with MCP Inspector**: `mcp dev mcp_server/__init__.py`
-3. **Add MCP servers** based on your needs
-4. **Register MCPToolsAgent** in your ORBIT system
-5. **Update intent detection** to route appropriate queries
+1. **Install MCP SDK**: Already included - `mcp==1.25.0` in requirements.txt
+2. **Test MCP Server**: `python start_mcp_server.py`
+3. **Test with MCP Inspector**: `mcp dev start_mcp_server.py`
+4. **Add MCP servers** based on your needs
+5. **Register MCPToolsAgent** by updating `src/agent_registry/__init__.py`
+6. **Update intent detection** to route appropriate queries to MCPToolsAgent
 
 For questions or issues, refer to:
 - MCP Documentation: https://modelcontextprotocol.io
