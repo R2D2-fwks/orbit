@@ -94,7 +94,7 @@ six==1.17.0
 sniffio==1.3.1
 sortedcontainers==2.4.0
 sse-starlette==3.1.2
-starlette==0.50.0
+starlette==0.51.0
 sympy==1.14.0
 thespian==4.0.1
 tiktoken==0.12.0
